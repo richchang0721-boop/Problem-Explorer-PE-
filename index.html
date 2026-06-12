@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problem Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0F0F0F;
+    --bg-2: #1A1A1A;
+    --bg-3: #222222;
+    --border: #2A2A2A;
+    --text: #E8E8E0;
+    --text-dim: #888880;
+    --system: #A8B5A0;
+    --accent: #6B7FD4;
+    --accent-dim: #3D4A7A;
+    --danger: #C47A6B;
+  }
+
+  :root.light {
+    --bg: #F5F4F0;
+    --bg-2: #ECEAE4;
+    --bg-3: #E2E0D8;
+    --border: #D0CEC6;
+    --text: #1A1A18;
+    --text-dim: #6B6B66;
+    --system: #4A6B44;
+    --accent: #3D52B0;
+    --accent-dim: #6B7FD4;
+    --danger: #B05040;
+  }
+
+  *, *::before, *::after {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 48px;
+  }
+
+  .logo-area {
+    text-align: center;
+  }
+
+  .logo-area h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .logo-area .tagline {
+    margin-top: 12px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+
+  .lang-toggle {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .lang-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .lang-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .setup-card {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .setup-card h2 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .field select,
+  .field input {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .field select:focus,
+  .field input:focus {
+    border-color: var(--accent-dim);
+  }
+
+  .field select option {
+    background: var(--bg-3);
+  }
+
+  .field .hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.6;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── CHAT SCREEN ── */
+  #chat-screen {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chat-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+  }
+
+  .provider-badge {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--accent-dim);
+    color: var(--text);
+  }
+
+  /* ── MESSAGES ── */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: fadeUp 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message-role {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .message.system .message-role { color: var(--system); }
+  .message.user .message-role { color: var(--accent); }
+
+  .message-content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .message.system .message-content {
+    color: var(--text);
+  }
+
+  /* ── OUTPUT CARD ── */
+  .output-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  .output-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .output-card-header span {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--system);
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent-dim); color: var(--text); }
+
+  .output-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .output-section:last-child { border-bottom: none; }
+
+  .output-section-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .output-section-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    margin: 0 24px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent-dim);
+    transition: width 0.4s ease;
+  }
+
+  /* ── INPUT AREA ── */
+  .input-area {
+    padding: 16px 24px 24px;
+    border-top: 1px solid var(--border);
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .input-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  #user-input {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 12px 16px;
+    resize: none;
+    outline: none;
+    min-height: 48px;
+    max-height: 160px;
+    transition: border-color 0.2s;
+    overflow-y: auto;
+  }
+
+  #user-input:focus { border-color: var(--accent-dim); }
+  #user-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+  #send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+
+  #send-btn:hover { opacity: 0.85; }
+  #send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  #send-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+  .turn-counter {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+    margin-top: 8px;
+    opacity: 0.5;
+  }
+
+  /* ── TYPING INDICATOR ── */
+  .typing {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .typing span {
+    width: 6px;
+    height: 6px;
+    background: var(--system);
+    border-radius: 50%;
+    animation: pulse 1.2s ease-in-out infinite;
+    opacity: 0.4;
+  }
+
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (max-width: 600px) {
+    .messages { padding: 20px 16px; }
+    .input-area { padding: 12px 16px 20px; }
+    .chat-header { padding: 12px 16px; }
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-it-works {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .how-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .how-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .how-step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .how-step-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .how-step-text strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── DEMO BUTTON ── */
+  .demo-link {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+  }
+
+  .btn-demo {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .btn-demo:hover {
+    border-color: var(--accent-dim);
+    color: var(--text);
+  }
+
+  /* ── DEMO SCREEN ── */
+  #demo-screen {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .demo-badge {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 0.04em;
+  }
+
+  .demo-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 8px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="logo-area">
+    <h1>Problem Explorer</h1>
+    <p class="tagline" id="tagline">Before asking AI — explore what you're really asking.</p>
+  </div>
+
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('zh')">中文</button>
+    <button class="lang-btn" id="theme-btn-setup" onclick="toggleTheme()" style="margin-left:8px;">☀️</button>
+  </div>
+
+  <div class="setup-card">
+    <h2 id="setup-title">Configure</h2>
+
+    <div class="field">
+      <label id="label-provider">AI Provider</label>
+      <select id="provider-select" onchange="onProviderChange()">
+        <option value="claude">Claude (Anthropic)</option>
+        <option value="openai">GPT (OpenAI)</option>
+        <option value="ollama">Local LLM (Ollama)</option>
+      </select>
+    </div>
+
+    <div class="field" id="api-key-field">
+      <label id="label-apikey">API Key</label>
+      <input type="password" id="api-key-input" placeholder="sk-..." autocomplete="off">
+      <span class="hint" id="hint-apikey">Not stored. Used only for this session.</span>
+    </div>
+
+    <div class="field" id="ollama-field" style="display:none;">
+      <label id="label-ollama-url">Ollama URL</label>
+      <input type="text" id="ollama-url-input" value="http://localhost:11434" placeholder="http://localhost:11434">
+      <label id="label-model" style="margin-top:12px;">Model</label>
+      <input type="text" id="ollama-model-input" value="llama3" placeholder="llama3">
+    </div>
+
+    <button class="btn-primary" id="start-btn" onclick="startSession()">
+      <span id="start-label">Start</span>
+    </button>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-it-works">
+    <div class="how-title" id="how-title">How it works</div>
+    <div class="how-step">
+      <div class="how-step-num">1</div>
+      <div class="how-step-text" id="how-1"><strong>Describe your situation.</strong> Any problem, decision, or thing you're stuck on.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">2</div>
+      <div class="how-step-text" id="how-2"><strong>Answer a few questions.</strong> The system asks only what you've already mentioned — nothing assumed.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">3</div>
+      <div class="how-step-text" id="how-3"><strong>See your problem structure.</strong> What you said, what options you mentioned, and what's still unclear.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-step-num">4</div>
+      <div class="how-step-text" id="how-4"><strong>No answers given.</strong> The system stays neutral. All judgments stay with you.</div>
+    </div>
+  </div>
+
+  <!-- DEMO BUTTON -->
+  <div class="demo-link">
+    <button class="btn-demo" id="demo-btn" onclick="startDemo()">▶ See an example conversation</button>
+  </div>
+</div>
+
+<!-- DEMO SCREEN -->
+<div id="demo-screen">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <h1>Problem Explorer</h1>
+      <span class="demo-badge" id="demo-badge-label">DEMO</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-ghost" onclick="toggleTheme()" id="theme-btn-demo">☀️</button>
+      <button class="btn-ghost" onclick="exitDemo()" id="exit-demo-btn">← Back</button>
+    </div>
+  </div>
+  <div class="demo-note" id="demo-note">This is a pre-recorded example. No API key required.</div>
+  <div class="messages" id="demo-messages"></div>
+  <div class="input-area" style="opacity:0.3; pointer-events:none;">
+    <div class="input-wrap">
+      <textarea rows="1" placeholder="..." disabled></textarea>
+      <button disabled style="background:var(--accent);border:none;border-radius:8px;width:44px;height:44px;opacity:0.3;"></button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chat-screen">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <h1>Problem Explorer</h1>
+      <span class="provider-badge" id="provider-badge">Claude</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-ghost" onclick="toggleTheme()" id="theme-btn-chat">☀️</button>
+      <button class="btn-ghost" onclick="toggleLang()" id="lang-switch-btn">中文</button>
+      <button class="btn-ghost" onclick="resetSession()" id="reset-btn">Reset</button>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="user-input" rows="1" placeholder="Type here..."></textarea>
+      <button id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+    <div class="turn-counter" id="turn-counter"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let lang = 'en';
+let isDark = true;
+let provider = 'claude';
+let apiKey = '';
+let ollamaUrl = 'http://localhost:11434';
+let ollamaModel = 'llama3';
+let conversationHistory = [];
+let turnCount = 0;
+const MAX_TURNS = 7;
+let sessionEnded = false;
+
+// ── I18N ──
+const T = {
+  en: {
+    tagline: 'Before asking AI — explore what you\'re really asking.',
+    setupTitle: 'Configure',
+    labelProvider: 'AI Provider',
+    labelApiKey: 'API Key',
+    hintApiKey: 'Not stored. Used only for this session.',
+    labelOllamaUrl: 'Ollama URL',
+    labelModel: 'Model',
+    startLabel: 'Start',
+    langSwitch: '中文',
+    resetBtn: 'Reset',
+    themeIcon: '☀️',
+    turnLabel: (n, max) => `Turn ${n} / ${max}`,
+    placeholder: 'Type here...',
+    roleSystem: 'Problem Explorer',
+    roleUser: 'You',
+    outputHeader: 'Problem Structure',
+    copyBtn: 'Copy',
+    copied: 'Copied',
+    sectionProblem: 'YOUR PROBLEM AS YOU DESCRIBED IT',
+    sectionSituation: 'YOUR CURRENT SITUATION',
+    sectionOptions: 'OPTIONS YOU MENTIONED',
+    sectionUnclear: 'WHAT IS STILL UNCLEAR',
+    howTitle: 'How it works',
+    how1: '<strong>Describe your situation.</strong> Any problem, decision, or thing you\'re stuck on.',
+    how2: '<strong>Answer a few questions.</strong> The system asks only what you\'ve already mentioned — nothing assumed.',
+    how3: '<strong>See your problem structure.</strong> What you said, what options you mentioned, and what\'s still unclear.',
+    how4: '<strong>No answers given.</strong> The system stays neutral. All judgments stay with you.',
+    demoBtn: '▶ See an example conversation',
+    demoBadge: 'DEMO',
+    demoNote: 'This is a pre-recorded example. No API key required.',
+    exitDemo: '← Back',
+  },
+  zh: {
+    tagline: '在問 AI 之前，先搞清楚你真正的問題是什麼。',
+    setupTitle: '設定',
+    labelProvider: 'AI 服務',
+    labelApiKey: 'API 金鑰',
+    hintApiKey: '不會儲存。僅在此 session 中使用。',
+    labelOllamaUrl: 'Ollama 網址',
+    labelModel: '模型',
+    startLabel: '開始',
+    langSwitch: 'EN',
+    resetBtn: '重置',
+    themeIcon: '☀️',
+    turnLabel: (n, max) => `第 ${n} / ${max} 輪`,
+    placeholder: '在這裡輸入...',
+    roleSystem: 'Problem Explorer',
+    roleUser: '你',
+    outputHeader: '問題結構',
+    copyBtn: '複製',
+    copied: '已複製',
+    sectionProblem: '你描述的問題',
+    sectionSituation: '你提到的現況',
+    sectionOptions: '你提到的選項',
+    sectionUnclear: '目前還不清楚的部分',
+    howTitle: '使用方式',
+    how1: '<strong>描述你的情況。</strong> 任何問題、決定，或讓你卡住的事。',
+    how2: '<strong>回答幾個問題。</strong> 系統只問你已經說過的內容，不做任何假設。',
+    how3: '<strong>看到你的問題結構。</strong> 你說了什麼、你提到哪些選項、哪些部分還不清楚。',
+    how4: '<strong>不給答案。</strong> 系統全程中性。所有判斷留給你。',
+    demoBtn: '▶ 看一段範例對話',
+    demoBadge: '範例',
+    demoNote: '這是預錄的範例對話，不需要 API 金鑰。',
+    exitDemo: '← 返回',
+  }
+};
+
+// ── SYSTEM PROMPT ──
+const SYSTEM_PROMPT = `You are Problem Explorer, a problem clarification tool. Your only job is to help the user articulate the structure of their problem through questions.
+
+CORE RULES:
+- Stay completely neutral. Never evaluate options, show bias, or imply a direction in questions.
+- All options and judgments must come from the user. You do not infer or suggest.
+- Ask only one question at a time.
+- Questions must come from what the user has already said — never introduce new directions.
+- Questions must be open-ended with no implied answer.
+
+TRACKING DIMENSIONS (address in this priority order):
+1. Problem Boundary — Is the problem specific and bounded?
+2. Goal Clarity — Does the user know what they want to be different?
+3. Agency — Does the user know what parts they can decide?
+4. Emotional Attachment — Is strong emotion affecting the description? (touch lightly only if obvious)
+5. Attribution Direction — Is the problem entirely attributed to external factors? (touch lightly only if obvious)
+6. Avoidance Signal — Is the user deliberately vague about certain parts? (touch lightly only if obvious)
+
+Dimensions 1–3: actively question, max 2 rounds each.
+Dimensions 4–6: only note when clearly present, touch once, give user choice to continue.
+
+STOP CONDITIONS — move to output if ANY of these occur:
+- User described a specific situation AND a desired change AND two possible directions
+- 7 turns reached
+- User indicates they don't think they have a problem → respond: "${lang === 'zh' ? '好的。如果之後有想釐清的問題，可以再開始。' : 'Understood. If you\'d like to clarify something later, you can start again anytime.'}" and end.
+
+OUTPUT FORMAT — when ready, output exactly this structure (use the language the user is writing in):
+---OUTPUT---
+PROBLEM: [user's own words, not reinterpreted]
+SITUATION: [bullet list of facts user stated]
+OPTIONS: [bullet list of directions user mentioned, or "No specific options were mentioned."]
+UNCLEAR: [gaps only — what's missing, no suggestions]
+---END---
+
+Before the output block, write one short neutral sentence transitioning to the summary.`;
+
+// ── THEME ──
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.classList.toggle('light', !isDark);
+  const icon = isDark ? '☀️' : '🌙';
+  const themeBtnSetup = document.getElementById('theme-btn-setup');
+  const themeBtnChat = document.getElementById('theme-btn-chat');
+  if (themeBtnSetup) themeBtnSetup.textContent = icon;
+  if (themeBtnChat) themeBtnChat.textContent = icon;
+}
+
+// ── SETUP ──
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  document.getElementById('tagline').textContent = t.tagline;
+  document.getElementById('setup-title').textContent = t.setupTitle;
+  document.getElementById('label-provider').textContent = t.labelProvider;
+  document.getElementById('label-apikey').textContent = t.labelApiKey;
+  document.getElementById('hint-apikey').textContent = t.hintApiKey;
+  document.getElementById('label-ollama-url').textContent = t.labelOllamaUrl;
+  document.getElementById('label-model').textContent = t.labelModel;
+  document.getElementById('start-label').textContent = t.startLabel;
+  document.getElementById('user-input').placeholder = t.placeholder;
+  document.getElementById('how-title').textContent = t.howTitle;
+  document.getElementById('how-1').innerHTML = t.how1;
+  document.getElementById('how-2').innerHTML = t.how2;
+  document.getElementById('how-3').innerHTML = t.how3;
+  document.getElementById('how-4').innerHTML = t.how4;
+  document.getElementById('demo-btn').textContent = t.demoBtn;
+  document.getElementById('demo-badge-label').textContent = t.demoBadge;
+  document.getElementById('demo-note').textContent = t.demoNote;
+  document.getElementById('exit-demo-btn').textContent = t.exitDemo;
+}
+
+function onProviderChange() {
+  provider = document.getElementById('provider-select').value;
+  const isOllama = provider === 'ollama';
+  document.getElementById('api-key-field').style.display = isOllama ? 'none' : 'flex';
+  document.getElementById('ollama-field').style.display = isOllama ? 'flex' : 'none';
+}
+
+function startSession() {
+  provider = document.getElementById('provider-select').value;
+  apiKey = document.getElementById('api-key-input').value.trim();
+  ollamaUrl = document.getElementById('ollama-url-input').value.trim();
+  ollamaModel = document.getElementById('ollama-model-input').value.trim();
+
+  if (provider !== 'ollama' && !apiKey) {
+    alert(lang === 'zh' ? '請輸入 API 金鑰' : 'Please enter your API key.');
+    return;
+  }
+
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('chat-screen').style.display = 'flex';
+
+  const badgeMap = { claude: 'Claude', openai: 'GPT', ollama: 'Ollama' };
+  document.getElementById('provider-badge').textContent = badgeMap[provider];
+  document.getElementById('lang-switch-btn').textContent = T[lang].langSwitch;
+  document.getElementById('reset-btn').textContent = T[lang].resetBtn;
+
+  const openingMsg = lang === 'zh'
+    ? '你好。你現在有什麼想釐清的問題或情況？'
+    : 'Hello. What\'s the problem or situation you\'d like to explore today?';
+
+  addMessage('system', openingMsg);
+}
+
+// ── LANG TOGGLE IN CHAT ──
+function toggleLang() {
+  lang = lang === 'en' ? 'zh' : 'en';
+  document.getElementById('lang-switch-btn').textContent = T[lang].langSwitch;
+  document.getElementById('user-input').placeholder = T[lang].placeholder;
+  document.getElementById('reset-btn').textContent = T[lang].resetBtn;
+}
+
+// ── MESSAGES ──
+function addMessage(role, content) {
+  const t = T[lang];
+  const container = document.getElementById('messages');
+
+  const isOutput = content.includes('---OUTPUT---');
+
+  if (isOutput) {
+    renderOutputCard(content, container);
+    return;
+  }
+
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+
+  const roleLabel = document.createElement('div');
+  roleLabel.className = 'message-role';
+  roleLabel.textContent = role === 'system' ? t.roleSystem : t.roleUser;
+
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'message-content';
+  contentDiv.textContent = content;
+
+  div.appendChild(roleLabel);
+  div.appendChild(contentDiv);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderOutputCard(raw, container) {
+  const t = T[lang];
+
+  // Extract preamble before ---OUTPUT---
+  const preamble = raw.split('---OUTPUT---')[0].trim();
+  const block = raw.split('---OUTPUT---')[1]?.split('---END---')[0]?.trim() || '';
+
+  if (preamble) {
+    addMessage('system', preamble);
+  }
+
+  const card = document.createElement('div');
+  card.className = 'output-card';
+
+  const header = document.createElement('div');
+  header.className = 'output-card-header';
+  const headerTitle = document.createElement('span');
+  headerTitle.textContent = t.outputHeader;
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'copy-btn';
+  copyBtn.textContent = t.copyBtn;
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(block);
+    copyBtn.textContent = t.copied;
+    setTimeout(() => copyBtn.textContent = t.copyBtn, 2000);
+  };
+  header.appendChild(headerTitle);
+  header.appendChild(copyBtn);
+  card.appendChild(header);
+
+  const sectionKeys = ['PROBLEM', 'SITUATION', 'OPTIONS', 'UNCLEAR'];
+  const sectionTitles = {
+    PROBLEM: t.sectionProblem,
+    SITUATION: t.sectionSituation,
+    OPTIONS: t.sectionOptions,
+    UNCLEAR: t.sectionUnclear,
+  };
+
+  sectionKeys.forEach(key => {
+    const regex = new RegExp(`${key}:([\\s\\S]*?)(?=(PROBLEM:|SITUATION:|OPTIONS:|UNCLEAR:|$))`);
+    const match = block.match(regex);
+    if (match) {
+      const sec = document.createElement('div');
+      sec.className = 'output-section';
+      const title = document.createElement('div');
+      title.className = 'output-section-title';
+      title.textContent = sectionTitles[key];
+      const content = document.createElement('div');
+      content.className = 'output-section-content';
+      content.textContent = match[1].trim();
+      sec.appendChild(title);
+      sec.appendChild(content);
+      card.appendChild(sec);
+    }
+  });
+
+  container.appendChild(card);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'message system';
+  div.id = 'typing-indicator';
+
+  const roleLabel = document.createElement('div');
+  roleLabel.className = 'message-role';
+  roleLabel.textContent = T[lang].roleSystem;
+
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+
+  div.appendChild(roleLabel);
+  div.appendChild(typing);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function updateProgress() {
+  const pct = Math.min((turnCount / MAX_TURNS) * 100, 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  const t = T[lang];
+  document.getElementById('turn-counter').textContent = t.turnLabel(turnCount, MAX_TURNS);
+}
+
+// ── SEND ──
+async function sendMessage() {
+  if (sessionEnded) return;
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('user', text);
+  turnCount++;
+  updateProgress();
+
+  conversationHistory.push({ role: 'user', content: text });
+
+  document.getElementById('send-btn').disabled = true;
+  showTyping();
+
+  try {
+    const reply = await callAI(conversationHistory);
+    removeTyping();
+    addMessage('system', reply);
+    conversationHistory.push({ role: 'assistant', content: reply });
+
+    if (reply.includes('---OUTPUT---') || reply.includes('再開始') || reply.includes('start again')) {
+      sessionEnded = true;
+      document.getElementById('send-btn').disabled = true;
+      document.getElementById('user-input').disabled = true;
+      document.getElementById('user-input').placeholder = lang === 'zh' ? '對話已結束' : 'Session ended';
+      document.getElementById('progress-fill').style.width = '100%';
+    }
+  } catch (err) {
+    removeTyping();
+    addMessage('system', lang === 'zh' ? `錯誤：${err.message}` : `Error: ${err.message}`);
+  }
+
+  if (!sessionEnded) {
+    document.getElementById('send-btn').disabled = false;
+    if (turnCount >= MAX_TURNS) {
+      sessionEnded = true;
+      document.getElementById('send-btn').disabled = true;
+    }
+  }
+}
+
+// ── AI CALL ──
+async function callAI(history) {
+  if (provider === 'claude') return callClaude(history);
+  if (provider === 'openai') return callOpenAI(history);
+  if (provider === 'ollama') return callOllama(history);
+}
+
+async function callClaude(history) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: history
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || res.statusText);
+  }
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+async function callOpenAI(history) {
+  const messages = [{ role: 'system', content: SYSTEM_PROMPT }, ...history];
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages,
+      max_tokens: 1024
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || res.statusText);
+  }
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+
+async function callOllama(history) {
+  const messages = [{ role: 'system', content: SYSTEM_PROMPT }, ...history];
+  const res = await fetch(`${ollamaUrl}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: ollamaModel,
+      messages,
+      stream: false
+    })
+  });
+  if (!res.ok) throw new Error(`Ollama error: ${res.statusText}`);
+  const data = await res.json();
+  return data.message.content;
+}
+
+// ── DEMO DATA ──
+const DEMO_SCRIPT = {
+  en: [
+    { role: 'system', text: 'Hello. What\'s the problem or situation you\'d like to explore today?', delay: 600 },
+    { role: 'user', text: 'I\'ve been thinking about quitting my job but I can\'t decide.', delay: 1200 },
+    { role: 'system', text: 'When you think about this situation, what\'s a specific moment that comes to mind — something that happened recently?', delay: 1800 },
+    { role: 'user', text: 'Last week my manager gave the project I\'d been working on for months to someone else without telling me.', delay: 1400 },
+    { role: 'system', text: 'You mentioned the project was given to someone else. What would have been different for you if that hadn\'t happened?', delay: 1800 },
+    { role: 'user', text: 'I think I would still be frustrated. Honestly the work itself stopped feeling meaningful about a year ago. I just want to feel like what I do matters.', delay: 1600 },
+    { role: 'system', text: 'You said you want to feel like what you do matters. In the situation you\'re describing, which parts of that are things you can change, and which parts aren\'t?', delay: 1900 },
+    { role: 'user', text: 'I can choose to leave. I can also try to find different work within the company. What I can\'t change is my manager or the culture here.', delay: 1400 },
+    { role: 'system', text: 'Here\'s what emerged from our conversation.\n---OUTPUT---\nPROBLEM: I\'ve been thinking about quitting my job but can\'t decide.\nSITUATION:\n• A project worked on for months was reassigned without notice last week\n• The work itself stopped feeling meaningful about a year ago\n• The manager and company culture feel unchangeable\nOPTIONS:\n• Leave the company\n• Find different work within the company\nUNCLEAR:\n• What "meaningful work" specifically looks like for you\n• Whether options inside the company have been explored\n• What leaving would require practically\n---END---', delay: 2000 },
+  ],
+  zh: [
+    { role: 'system', text: '你好。你現在有什麼想釐清的問題或情況？', delay: 600 },
+    { role: 'user', text: '我一直在想要不要辭職，但就是無法決定。', delay: 1200 },
+    { role: 'system', text: '你說想辭職，最近有沒有一個具體的事件讓你有這個念頭？', delay: 1800 },
+    { role: 'user', text: '上週我做了好幾個月的專案，主管沒有跟我說就把它交給別人了。', delay: 1400 },
+    { role: 'system', text: '你提到專案被轉交給別人。如果這件事沒有發生，你的情況會有什麼不同？', delay: 1800 },
+    { role: 'user', text: '我想我還是會覺得不對勁。說實在的，這份工作大概一年前就開始感覺沒有意義了。我只是想要覺得自己做的事情是有價值的。', delay: 1600 },
+    { role: 'system', text: '你說你想感覺到自己做的事有價值。在你描述的這個情況裡，哪些部分是你可以改變的，哪些不是？', delay: 1900 },
+    { role: 'user', text: '我可以選擇離開。我也可以試試看在公司內部找其他工作。我沒辦法改變的是我的主管還有這裡的文化。', delay: 1400 },
+    { role: 'system', text: '以下是這段對話整理出來的結構。\n---OUTPUT---\nPROBLEM: 一直在想要不要辭職，但無法決定。\nSITUATION:\n• 上週做了好幾個月的專案被主管轉交給別人，沒有事先告知\n• 這份工作大約一年前就開始感覺沒有意義\n• 主管和公司文化是自己無法改變的部分\nOPTIONS:\n• 離開公司\n• 在公司內部尋找其他工作機會\nUNCLEAR:\n• 「有意義的工作」對你來說具體是什麼樣子\n• 公司內部的其他可能性是否真的探索過\n• 離開在實際上需要什麼條件\n---END---', delay: 2000 },
+  ]
+};
+
+let demoTimeout = null;
+
+function startDemo() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('demo-screen').style.display = 'flex';
+  document.getElementById('theme-btn-demo').textContent = isDark ? '☀️' : '🌙';
+  playDemo();
+}
+
+function exitDemo() {
+  if (demoTimeout) clearTimeout(demoTimeout);
+  document.getElementById('demo-messages').innerHTML = '';
+  document.getElementById('demo-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+function playDemo() {
+  const script = DEMO_SCRIPT[lang] || DEMO_SCRIPT.en;
+  const container = document.getElementById('demo-messages');
+  container.innerHTML = '';
+
+  let cumDelay = 0;
+  script.forEach((step, i) => {
+    cumDelay += step.delay;
+    demoTimeout = setTimeout(() => {
+      // show typing for system messages
+      if (step.role === 'system' && i > 0) {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message system';
+        typingDiv.id = 'demo-typing';
+        const roleEl = document.createElement('div');
+        roleEl.className = 'message-role';
+        roleEl.textContent = T[lang].roleSystem;
+        const typingEl = document.createElement('div');
+        typingEl.className = 'typing';
+        typingEl.innerHTML = '<span></span><span></span><span></span>';
+        typingDiv.appendChild(roleEl);
+        typingDiv.appendChild(typingEl);
+        container.appendChild(typingDiv);
+        container.scrollTop = container.scrollHeight;
+
+        setTimeout(() => {
+          const t = document.getElementById('demo-typing');
+          if (t) t.remove();
+          renderDemoMessage(step, container);
+        }, 700);
+      } else {
+        renderDemoMessage(step, container);
+      }
+    }, cumDelay);
+  });
+}
+
+function renderDemoMessage(step, container) {
+  if (step.text.includes('---OUTPUT---')) {
+    renderOutputCard(step.text, container);
+  } else {
+    const div = document.createElement('div');
+    div.className = `message ${step.role}`;
+    const roleEl = document.createElement('div');
+    roleEl.className = 'message-role';
+    roleEl.textContent = step.role === 'system' ? T[lang].roleSystem : T[lang].roleUser;
+    const contentEl = document.createElement('div');
+    contentEl.className = 'message-content';
+    contentEl.textContent = step.text;
+    div.appendChild(roleEl);
+    div.appendChild(contentEl);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+// ── RESET ──
+function resetSession() {
+  conversationHistory = [];
+  turnCount = 0;
+  sessionEnded = false;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('turn-counter').textContent = '';
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('user-input').placeholder = T[lang].placeholder;
+
+  const openingMsg = lang === 'zh'
+    ? '你好。你現在有什麼想釐清的問題或情況？'
+    : 'Hello. What\'s the problem or situation you\'d like to explore today?';
+  addMessage('system', openingMsg);
+}
+
+// ── AUTO RESIZE TEXTAREA ──
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('user-input');
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+  });
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  applyTranslations();
+});
+</script>
+</body>
+</html>
