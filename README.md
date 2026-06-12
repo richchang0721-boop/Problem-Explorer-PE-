@@ -6,6 +6,15 @@ A problem clarification tool. Explore your problem before asking AI.
 
 ---
 
+## Live Demo / 線上體驗
+
+👉 https://richchang0721-boop.github.io/Problem-Explorer-PE-/
+
+No API key required to try the example conversation.
+不需要 API 金鑰，可直接體驗範例對話。
+
+---
+
 ## What Problem Explorer Does / 這個工具做什麼
 
 **EN**
